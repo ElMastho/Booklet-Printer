@@ -108,7 +108,7 @@ EN: dict[str, str] = {
     "book.back_cover": "Back cover",
     "book.spread": "Pages {a} – {b}",
     "book.blank_added": "Blank page (added)",
-    "book.chip": "Page {page} · {what} · printed on sheet {sheet}, {side}",
+    "book.chip": "Page {page} · {what}\nPrinted on sheet {sheet}, {side}",
     # ---- sheets view
     "sheets.title": "Printed sheets",
     "sheets.front": "FRONT",
@@ -200,6 +200,7 @@ EN: dict[str, str] = {
     # ---- menus / dialogs / status
     "menu.lang_auto": "Auto language",
     "menu.check_updates": "Check for updates",
+    "menu.auto_update": "Check for updates at start-up",
     "menu.how_to": "How to print a booklet",
     "menu.about": "About",
     "dlg.open_title": "Choose a document",
@@ -330,7 +331,7 @@ FR: dict[str, str] = {
     "book.back_cover": "4ᵉ de couverture",
     "book.spread": "Pages {a} – {b}",
     "book.blank_added": "Page blanche (ajoutée)",
-    "book.chip": "Page {page} · {what} · imprimée sur la feuille {sheet}, {side}",
+    "book.chip": "Page {page} · {what}\nImprimée sur la feuille {sheet}, {side}",
     "sheets.title": "Feuilles imprimées",
     "sheets.front": "RECTO",
     "sheets.back": "VERSO",
@@ -418,6 +419,7 @@ FR: dict[str, str] = {
     "btn.export_pages": "Exporter les pages modifiées",
     "menu.lang_auto": "Langue auto",
     "menu.check_updates": "Rechercher des mises à jour",
+    "menu.auto_update": "Vérifier au démarrage",
     "menu.how_to": "Comment imprimer un livret",
     "menu.about": "À propos",
     "dlg.open_title": "Choisir un document",

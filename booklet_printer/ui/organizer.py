@@ -92,11 +92,31 @@ class Organizer(ctk.CTkFrame):
 
     # ---------------------------------------------------------------- UI
     def _build_toolbar(self) -> None:
-        bar = theme.card(self, height=52)
+        bar = theme.card(self)
         bar.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 10))
-        inner = ctk.CTkFrame(bar, fg_color="transparent")
+        inner = ctk.CTkFrame(bar, fg_color="transparent", height=36)
         inner.pack(fill="x", padx=8, pady=8)
         self.tool_buttons = []
+        flow: list[tuple[ctk.CTkBaseClass, int]] = []
+
+        def reflow(_event=None) -> None:
+            """Place the buttons left to right, wrapping onto new lines when needed."""
+            width = max(inner.winfo_width(), 200)
+            x = y = line_h = 0
+            for widget, gap in flow:
+                w, h = widget.winfo_reqwidth(), max(widget.winfo_reqheight(), 32)
+                if x and x + w > width:
+                    x, y = 0, y + line_h + 6
+                    line_h = 0
+                    if gap > 4:  # do not start a line with a separator
+                        widget.place_forget()
+                        continue
+                widget.place(x=x, y=y + (32 - widget.winfo_reqheight()) // 2 if gap > 4 else y)
+                x += w + gap
+                line_h = max(line_h, h)
+            inner.configure(height=y + line_h)
+
+        inner.bind("<Configure>", reflow)
 
         def btn(text: str, cmd: Callable[[], None], tip: str, accent: bool = False) -> None:
             icon_only = len(text) <= 2
@@ -104,12 +124,12 @@ class Organizer(ctk.CTkFrame):
                                    font=theme.font(16 if icon_only else 12))
             if accent:
                 b.configure(text_color=theme.DANGER)
-            b.pack(side="left", padx=2)
+            flow.append((b, 4))
             Tooltip(b, tip)
             self.tool_buttons.append(b)
 
         def sep() -> None:
-            ctk.CTkFrame(inner, width=1, height=24, fg_color=theme.BORDER).pack(side="left", padx=6)
+            flow.append((ctk.CTkFrame(inner, width=1, height=24, fg_color=theme.BORDER), 10))
 
         btn(t("edit.undo"), self.app.undo, t("tip.undo"))
         btn(t("edit.redo"), self.app.redo, t("tip.redo"))

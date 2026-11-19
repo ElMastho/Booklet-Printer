@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import threading
+import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
 from typing import Callable, Optional
@@ -133,8 +134,8 @@ class App(ctk.CTkFrame):
             height=38,
             corner_radius=12,
             font=theme.font(13, "bold"),
-            selected_color=theme.PRIMARY,
-            selected_hover_color=theme.PRIMARY_HOVER,
+            selected_color=theme.SELECTED,
+            selected_hover_color=theme.SELECTED_HOVER,
             unselected_color=theme.SURFACE,
             unselected_hover_color=theme.PRIMARY_SOFT,
             fg_color=theme.SURFACE,
@@ -202,24 +203,22 @@ class App(ctk.CTkFrame):
         )
         self.appearance.set(app_values[APPEARANCES.index(get_setting("appearance", "system"))])
         self.appearance.pack(side="left", padx=4)
-        more = ctk.CTkOptionMenu(
-            right, values=[t("menu.check_updates"), t("menu.how_to"), t("menu.about")], width=44, corner_radius=10,
-            command=self._more, fg_color=theme.SURFACE_2, button_color=theme.SURFACE_2,
-            button_hover_color=theme.PRIMARY_SOFT, text_color=theme.TEXT, font=theme.font(12), dynamic_resizing=False,
-        )
-        more.set("⋯")
+        more = theme.ghost_button(right, text="•••", width=44, height=28, font=theme.font(12, "bold"))
+        more.configure(command=lambda: self._more_popup(more))
         more.pack(side="left", padx=4)
-        self.more_menu = more
         theme.primary_button(right, text=t("btn.open"), command=self.ask_open, width=150).pack(side="left", padx=(10, 0))
 
-    def _more(self, choice: str) -> None:
-        self.more_menu.set("⋯")
-        if choice == t("menu.check_updates"):
-            self.check_updates(silent=False)
-        elif choice == t("menu.how_to"):
-            messagebox.showinfo(t("menu.how_to"), t("help.long"))
-        else:
-            messagebox.showinfo(t("menu.about"), t("dlg.about", version=__version__, repo=REPO))
+    def _more_popup(self, button) -> None:
+        menu = tk.Menu(self, tearoff=False)
+        menu.add_command(label=t("menu.how_to"), command=lambda: messagebox.showinfo(t("menu.how_to"), t("help.long")))
+        menu.add_command(label=t("menu.check_updates"), command=lambda: self.check_updates(silent=False))
+        auto = tk.BooleanVar(value=get_setting("auto_update", True))
+        menu.add_checkbutton(label=t("menu.auto_update"), variable=auto,
+                             command=lambda: set_setting("auto_update", bool(auto.get())))
+        menu.add_separator()
+        menu.add_command(label=t("menu.about"),
+                         command=lambda: messagebox.showinfo(t("menu.about"), t("dlg.about", version=__version__, repo=REPO)))
+        menu.tk_popup(button.winfo_rootx(), button.winfo_rooty() + button.winfo_height() + 4)
 
     def _build_welcome(self, master) -> ctk.CTkFrame:
         outer = ctk.CTkFrame(master, fg_color="transparent")
@@ -277,7 +276,9 @@ class App(ctk.CTkFrame):
         self._label(lay, t("label.paper"))
         ctk.CTkSegmentedButton(
             lay, values=list(PAPER_SIZES)[:3], variable=self.paper, command=lambda v: self.layout_changed(),
-            selected_color=theme.PRIMARY, selected_hover_color=theme.PRIMARY_HOVER, corner_radius=10,
+            selected_color=theme.SELECTED, selected_hover_color=theme.SELECTED_HOVER, corner_radius=10,
+            fg_color=theme.SURFACE_2, unselected_color=theme.SURFACE_2, unselected_hover_color=theme.PRIMARY_SOFT,
+            text_color=(theme.TEXT[0], theme.TEXT[1]),
         ).pack(fill="x", padx=14)
         other = ctk.CTkOptionMenu(lay, values=list(PAPER_SIZES), variable=self.paper, height=26, corner_radius=8,
                                   command=lambda v: self.layout_changed(), fg_color=theme.SURFACE_2,

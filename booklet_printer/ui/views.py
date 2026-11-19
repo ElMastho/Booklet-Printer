@@ -43,22 +43,35 @@ class Stage(tk.Canvas):
 class NavBar(ctk.CTkFrame):
     """◀  [slider]  ▶ with a caption."""
 
-    def __init__(self, master, on_move, on_seek):
+    def __init__(self, master, on_move, on_seek, with_chips: bool = False):
         super().__init__(master, fg_color="transparent")
         self.on_seek = on_seek
-        self.columnconfigure(1, weight=1)
+        self.chips: list[ctk.CTkLabel] = []
+        cols = (0, 1, 2, 3, 4) if with_chips else (0, None, 2, None, 4)
+        self.columnconfigure(2, weight=1 if not with_chips else 2)
+        if with_chips:
+            self.columnconfigure((1, 3), weight=3, uniform="chip")
         self.prev = ctk.CTkButton(self, text="‹", width=44, height=44, corner_radius=22, font=theme.font(24, "bold"),
                                   fg_color=theme.PRIMARY, hover_color=theme.PRIMARY_HOVER, command=lambda: on_move(-1))
-        self.prev.grid(row=0, column=0, rowspan=2, padx=(0, 12))
-        self.caption = ctk.CTkLabel(self, text="", font=theme.font(15, "bold"), text_color=theme.TEXT)
-        self.caption.grid(row=0, column=1, sticky="ew")
-        self.slider = ctk.CTkSlider(self, from_=0, to=1, number_of_steps=1, command=self._slide,
+        self.prev.grid(row=0, column=cols[0], rowspan=2, padx=(0, 10))
+        center = ctk.CTkFrame(self, fg_color="transparent")
+        center.grid(row=0, column=2, rowspan=2, sticky="ew", padx=6)
+        center.columnconfigure(0, weight=1)
+        self.caption = ctk.CTkLabel(center, text="", font=theme.font(15, "bold"), text_color=theme.TEXT)
+        self.caption.grid(row=0, column=0, sticky="ew")
+        self.slider = ctk.CTkSlider(center, from_=0, to=1, number_of_steps=1, command=self._slide,
                                     progress_color=theme.PRIMARY, button_color=theme.PRIMARY,
                                     button_hover_color=theme.PRIMARY_HOVER)
-        self.slider.grid(row=1, column=1, sticky="ew", pady=(2, 0))
+        self.slider.grid(row=1, column=0, sticky="ew", pady=(2, 0))
+        if with_chips:
+            for col in (1, 3):
+                chip = ctk.CTkLabel(self, text="", font=theme.font(12), text_color=theme.TEXT, fg_color=theme.SURFACE,
+                                    corner_radius=10, height=44, anchor="w", padx=12, justify="left", wraplength=260)
+                chip.grid(row=0, column=col, rowspan=2, sticky="ew", padx=4)
+                self.chips.append(chip)
         self.next = ctk.CTkButton(self, text="›", width=44, height=44, corner_radius=22, font=theme.font(24, "bold"),
                                   fg_color=theme.PRIMARY, hover_color=theme.PRIMARY_HOVER, command=lambda: on_move(1))
-        self.next.grid(row=0, column=2, rowspan=2, padx=(12, 0))
+        self.next.grid(row=0, column=cols[4], rowspan=2, padx=(10, 0))
         self._count = 1
 
     def _slide(self, value: float) -> None:
@@ -104,19 +117,9 @@ class BookView(ctk.CTkFrame):
         self.canvas.bind("<Button-1>", self._click)
         self.canvas.bind("<Double-Button-1>", self._double_click)
 
-        self.info = ctk.CTkFrame(self, fg_color="transparent")
-        self.info.grid(row=2, column=0, sticky="ew", pady=(10, 4))
-        self.info.columnconfigure((0, 1), weight=1)
-        self.chips = [self._chip(self.info, 0), self._chip(self.info, 1)]
-
-        self.nav = NavBar(self, self.move, self.seek)
-        self.nav.grid(row=3, column=0, sticky="ew", pady=(6, 0))
-
-    def _chip(self, master, col: int) -> ctk.CTkLabel:
-        lbl = ctk.CTkLabel(master, text="", font=theme.font(12), text_color=theme.TEXT, fg_color=theme.SURFACE,
-                           corner_radius=10, height=34, anchor="w", padx=12)
-        lbl.grid(row=0, column=col, sticky="ew", padx=4)
-        return lbl
+        self.nav = NavBar(self, self.move, self.seek, with_chips=True)
+        self.nav.grid(row=2, column=0, sticky="ew", pady=(10, 0))
+        self.chips = self.nav.chips
 
     # ------------------------------------------------------------- state
     def spreads(self) -> list[tuple[Optional[int], Optional[int]]]:

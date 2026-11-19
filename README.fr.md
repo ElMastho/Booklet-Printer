@@ -7,6 +7,8 @@ Application de bureau qui transforme un **PDF** ou une présentation **PowerPoin
 qui ne vont pas, puis vous l'imprimez en recto-verso. Il ne reste qu'à plier la pile en deux
 et à agrafer au pli.
 
+![Vue livret](https://raw.githubusercontent.com/ElMastho/booklet-printer/screenshots/fr-dark-3-book-spread.png)
+
 ## Téléchargement (Windows)
 
 Téléchargez `BookletPrinter.exe` depuis la

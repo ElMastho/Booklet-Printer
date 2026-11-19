@@ -9,6 +9,8 @@ and staple on the fold.
 
 [![CI](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml/badge.svg)](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml)
 
+![Booklet view](https://raw.githubusercontent.com/ElMastho/booklet-printer/screenshots/en-light-3-book-spread.png)
+
 ## Download (Windows)
 
 Download `BookletPrinter.exe` from the
