@@ -42,6 +42,7 @@ jobs:
     name: Build Windows executable
     needs: test
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -83,7 +84,9 @@ jobs:
           Copy-Item dist\BookletPrinter.exe app\BookletPrinter.exe
           Copy-Item dist\BookletPrinter.exe new.exe
           $env:BOOKLET_STARTUP_MARKER = "$PWD\marker.txt"
-          Start-Process -FilePath app\BookletPrinter.exe -ArgumentList '--self-update-test', "$PWD\new.exe" -Wait
+          # -Wait would also wait for the relaunched app (a descendant), so wait for this process only
+          $p = Start-Process -FilePath app\BookletPrinter.exe -ArgumentList '--self-update-test', "$PWD\new.exe" -PassThru
+          $p.WaitForExit(60000) | Out-Null
           $log = "$env:TEMP\BookletPrinter-update.log"
           for ($i = 0; $i -lt 60; $i++) {
             if ((Test-Path marker.txt) -and ((Get-Content marker.txt) -match '<gui>')) { break }
