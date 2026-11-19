@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install LibreOffice (PPTX conversion tests)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-impress
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -v
+
+  build-windows:
+    name: Build Windows executable
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+
+      - name: Check tag matches version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          version=$(python -c "import booklet_printer; print(booklet_printer.__version__)")
+          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match __version__ $version"; exit 1
+          fi
+
+      - name: Build with PyInstaller
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed
+          --name BookletPrinter
+          --hidden-import win32timezone
+          run_app.py
+
+      - name: Smoke test the executable
+        shell: pwsh
+        run: |
+          python -c "import pymupdf; d=pymupdf.open(); [d.new_page() for _ in range(6)]; d.save('sample.pdf')"
+          $p = Start-Process -FilePath dist\BookletPrinter.exe -ArgumentList 'sample.pdf','-o','out.pdf' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "exit code $($p.ExitCode)" }
+          python -c "import pymupdf; d=pymupdf.open('out.pdf'); assert len(d)==4, len(d); print('OK', len(d), 'faces')"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BookletPrinter-windows
+          path: dist/BookletPrinter.exe
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: BookletPrinter-windows
+          path: dist
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/BookletPrinter.exe \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Booklet Printer $GITHUB_REF_NAME" \
+            --generate-notes

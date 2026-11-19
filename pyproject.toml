@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "booklet-printer"
+dynamic = ["version"]
+description = "Met en page un PDF ou un PPTX en livret (cahier piqué), avec aperçu et impression recto-verso."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "pymupdf>=1.24",
+    "pywin32>=306; sys_platform == 'win32'",
+    "pillow>=10; sys_platform == 'win32'",
+]
+
+[project.scripts]
+booklet-printer = "booklet_printer.cli:main"
+
+[tool.setuptools]
+packages = ["booklet_printer"]
+
+[tool.setuptools.dynamic]
+version = { attr = "booklet_printer.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
