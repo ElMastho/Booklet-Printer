@@ -1,3 +1,7 @@
+import sys
+
+import pytest
+
 from booklet_printer import i18n
 
 
@@ -26,6 +30,7 @@ def test_switch_language():
         i18n.set_language("en")
 
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Windows uses the UI language API first")
 def test_system_language_from_env(monkeypatch):
     for var in ("LC_ALL", "LC_MESSAGES", "LANGUAGE"):
         monkeypatch.delenv(var, raising=False)
