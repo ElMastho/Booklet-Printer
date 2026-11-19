@@ -76,6 +76,26 @@ jobs:
           if ($p.ExitCode -ne 0) { throw "exit code $($p.ExitCode)" }
           python -c "import pymupdf; d=pymupdf.open('out.pdf'); assert len(d)==4, len(d); print('OK', len(d), 'faces')"
 
+      - name: Self-update test (swap the exe and relaunch it)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force app | Out-Null
+          Copy-Item dist\BookletPrinter.exe app\BookletPrinter.exe
+          Copy-Item dist\BookletPrinter.exe new.exe
+          $env:BOOKLET_STARTUP_MARKER = "$PWD\marker.txt"
+          Start-Process -FilePath app\BookletPrinter.exe -ArgumentList '--self-update-test', "$PWD\new.exe" -Wait
+          $log = "$env:TEMP\BookletPrinter-update.log"
+          for ($i = 0; $i -lt 60; $i++) {
+            if ((Test-Path marker.txt) -and ((Get-Content marker.txt) -match '<gui>')) { break }
+            Start-Sleep -Seconds 1
+          }
+          Write-Host "--- update log"; Get-Content $log
+          Write-Host "--- startup marker"; Get-Content marker.txt
+          Get-Process BookletPrinter -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (-not ((Get-Content $log) -match 'new version installed')) { throw "exe was not replaced" }
+          if (-not ((Get-Content marker.txt) -match '<gui>')) { throw "new version did not start" }
+          if (Test-Path new.exe) { throw "downloaded exe was not cleaned up" }
+
       - uses: actions/upload-artifact@v5
         with:
           name: BookletPrinter-windows

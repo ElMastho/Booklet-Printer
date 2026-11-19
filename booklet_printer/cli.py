@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -35,6 +36,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    marker = os.environ.get("BOOKLET_STARTUP_MARKER")
+    if marker:  # used by CI to check that a relaunched exe really starts
+        with open(marker, "a", encoding="utf-8") as fh:
+            fh.write(f"{__version__} {' '.join(argv) or '<gui>'}\n")
+    if len(argv) == 2 and argv[0] == "--self-update-test":  # CI only: exercise the updater swap
+        from .updater import install_and_restart
+
+        install_and_restart(Path(argv[1]))
+        return 0
     # Apply --lang before building the parser so that --help is translated too.
     if "--lang" in argv:
         i = argv.index("--lang")

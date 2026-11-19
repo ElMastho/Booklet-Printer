@@ -57,3 +57,16 @@ def test_config_roundtrip(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "config_path", lambda: tmp_path / "cfg" / "config.json")
     config.save_config({"auto_update": False})
     assert config.load_config() == {"auto_update": False}
+
+
+def test_update_script(tmp_path):
+    from pathlib import Path
+
+    script = updater.build_update_script(
+        Path(r"C:\Temp\new.exe"), Path(r"C:\Apps\BookletPrinter.exe"), [111, 222], Path(r"C:\Temp\u.log")
+    )
+    assert script.count("\r\n") > 10
+    assert ':wait111' in script and ':wait222' in script
+    assert 'copy /Y /B "C:\\Temp\\new.exe" "C:\\Apps\\BookletPrinter.exe"' in script
+    assert "PYINSTALLER_RESET_ENVIRONMENT=1" in script
+    assert script.index("PYINSTALLER_RESET_ENVIRONMENT") < script.index('start ""')
