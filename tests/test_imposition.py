@@ -88,7 +88,7 @@ def test_impose_output_geometry_portrait_source():
     res = impose(make_pdf(10), ImposeOptions(paper="A4", binding=Binding.AUTO))
     assert res.binding == Binding.LEFT
     assert len(res.document) == 6  # 3 sheets * 2 sides
-    assert res.blank_pages == 2
+    assert res.padding_pages == 2
     page = res.document[0]
     assert page.rect.width > page.rect.height  # landscape sheet
     assert round(page.rect.width) == 842 and round(page.rect.height) == 595
@@ -115,9 +115,9 @@ def test_impose_places_right_pages():
 
 def test_split_sides():
     res = impose(make_pdf(8), ImposeOptions(binding=Binding.LEFT))
-    rectos, versos = split_sides(res.document, reverse_versos=True)
-    assert len(rectos) == len(versos) == 2
-    assert "PAGE-4" in versos[0].get_text() and "PAGE-2" in versos[1].get_text()
+    fronts, backs = split_sides(res.document, reverse_backs=True)
+    assert len(fronts) == len(backs) == 2
+    assert "PAGE-4" in backs[0].get_text() and "PAGE-2" in backs[1].get_text()
 
 
 def test_unknown_paper():

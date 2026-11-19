@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from booklet_printer import updater
+from booklet_printer import config, updater
 
 
 @pytest.mark.parametrize(
@@ -54,6 +54,6 @@ def test_no_update_when_same_version(monkeypatch):
 
 
 def test_config_roundtrip(tmp_path, monkeypatch):
-    monkeypatch.setattr(updater, "config_path", lambda: tmp_path / "cfg" / "config.json")
-    updater.save_config({"auto_update": False})
-    assert updater.load_config() == {"auto_update": False}
+    monkeypatch.setattr(config, "config_path", lambda: tmp_path / "cfg" / "config.json")
+    config.save_config({"auto_update": False})
+    assert config.load_config() == {"auto_update": False}

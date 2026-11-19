@@ -5,21 +5,22 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "booklet-printer"
 dynamic = ["version"]
-description = "Met en page un PDF ou un PPTX en livret (cahier piqué), avec aperçu et impression recto-verso."
+description = "Turn a PDF or PPTX into a saddle-stitched booklet: preview, page editor and double-sided printing."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 dependencies = [
     "pymupdf>=1.24",
+    "customtkinter==5.2.2",
+    "pillow>=10.1",
     "pywin32>=306; sys_platform == 'win32'",
-    "pillow>=10; sys_platform == 'win32'",
 ]
 
 [project.scripts]
 booklet-printer = "booklet_printer.cli:main"
 
 [tool.setuptools]
-packages = ["booklet_printer"]
+packages = ["booklet_printer", "booklet_printer.ui"]
 
 [tool.setuptools.dynamic]
 version = { attr = "booklet_printer.__version__" }

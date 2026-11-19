@@ -1,121 +1,137 @@
 # Booklet Printer
 
-Outil de bureau qui transforme un **PDF** ou une présentation **PowerPoint (PPTX)** en
-**livret** (cahier piqué), avec un aperçu, puis l'imprime correctement en recto-verso :
-il suffit de plier la pile de feuilles en deux et d'agrafer au pli.
+[Français](README.fr.md) · English
 
-![CI](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml/badge.svg)
+Desktop app that turns a **PDF** or a **PowerPoint (PPTX)** presentation into a
+**saddle-stitched booklet**: you leaf through the booklet exactly as it will look,
+fix any page that is wrong, and print it double-sided. Then fold the stack in half
+and staple on the fold.
 
-## Téléchargement (Windows)
+[![CI](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml/badge.svg)](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml)
 
-Téléchargez `BookletPrinter.exe` depuis la
-[dernière release](https://github.com/ElMastho/booklet-printer/releases/latest) et lancez-le.
-Aucune installation n'est nécessaire.
+## Download (Windows)
 
-* L'exécutable n'est pas signé : Windows SmartScreen peut afficher « Windows a protégé
-  votre ordinateur ». Cliquez sur **Informations complémentaires → Exécuter quand même**.
-* Placez l'exe dans un dossier où vous avez les droits d'écriture (Bureau, Documents…),
-  pas dans `Program Files`, pour que la mise à jour automatique puisse le remplacer.
+Download `BookletPrinter.exe` from the
+[latest release](https://github.com/ElMastho/booklet-printer/releases/latest) and run it.
+Nothing to install.
 
-## Utilisation
+* The executable is not code-signed, so Windows SmartScreen may say “Windows protected your PC”.
+  Click **More info → Run anyway**.
+* Keep the exe in a folder you can write to (Desktop, Documents…), not in `Program Files`,
+  so that automatic updates can replace it.
 
-1. **Ouvrir un PDF / PPTX…**
-2. Vérifier l'aperçu :
-   * **Feuilles à imprimer** : recto et verso de chaque feuille, avec en bleu le numéro de la
-     page source placée à chaque emplacement ;
-   * **Livret plié** : le livret tel qu'on le lira (couverture, doubles pages, 4ᵉ de couverture).
-3. Régler si besoin : format de papier, reliure, marge, gouttière, 4ᵉ de couverture, traits de pliage.
-4. **Imprimer** (ou **Enregistrer le PDF imposé…** pour l'imprimer depuis un autre logiciel).
-5. Imbriquer les feuilles (la feuille 1 à l'extérieur), plier en deux, agrafer au pli.
+## Using it
 
-### Ce que fait l'imposition
+1. **Open a file** (PDF, PPTX, PPT, ODP, DOCX…).
+2. **Booklet** view: the folded booklet, page after page. Click a page or use ← → to turn
+   pages. Every page shows its booklet page number at the bottom left, and the bar below
+   tells you on which sheet, front or back, it will be printed.
+3. **Pages** view: fix anything that is wrong.
+   * drag and drop pages to reorder them (Ctrl/Shift-click to select several);
+   * move earlier/later, move to a given position, duplicate, delete;
+   * insert blank pages, rotate by 90°;
+   * crop a page by drawing a rectangle on it (or type the margins in mm);
+   * shrink a page and shift it inside its half-sheet;
+   * apply the same adjustment to every page, reset a page, undo/redo everything.
+   Double-click a page in the booklet or in the printed sheets to jump to it.
+4. **Printed sheets** view: each physical sheet, front and back, with the page numbers it carries.
+5. **Print the booklet**, or save the print-ready PDF to print it from another program.
+6. Nest the sheets (sheet 1 outside), fold in half and staple on the fold.
 
-* Le nombre de pages est complété avec des pages blanches jusqu'au multiple de 4 suivant
-  (à la fin, ou juste avant la dernière page si « Dernière page en 4ᵉ de couverture » est cochée).
-* Deux pages par face, quatre par feuille, dans l'ordre du cahier piqué. Pour 8 pages :
-  feuille 1 = recto 8 | 1, verso 2 | 7 ; feuille 2 = recto 6 | 3, verso 4 | 5.
-* Les pages sont mises à l'échelle en conservant leurs proportions et centrées dans leur demi-feuille.
-* **Reliure** :
-  * *À gauche* : livret classique, feuille A4 paysage → livret A5 portrait ;
-  * *À droite* : lecture de droite à gauche (manga, arabe, hébreu) ;
-  * *En haut* (calendrier) : feuille A4 portrait, deux pages paysage l'une au-dessus de l'autre →
-    idéal pour des diapositives 16:9 qui restent grandes ;
-  * *Automatique* : « en haut » si la majorité des pages sont en paysage (diapos), sinon « à gauche ».
+The interface is available in **English and French**. It follows the language of the computer
+by default and can be switched from the header. Light and dark themes are available too.
 
-### Réglages d'impression
+### How the imposition works
 
-L'impression se fait toujours en **recto-verso, retournement sur le bord court, échelle 100 %**.
+* The page count is padded with blank pages up to the next multiple of 4 (at the end, or just
+  before the last page when “Last page on the back cover” is on).
+* Two pages per side, four per sheet, in saddle-stitch order. With 8 pages:
+  sheet 1 = front 8 | 1, back 2 | 7; sheet 2 = front 6 | 3, back 4 | 5.
+* Pages are scaled to fit their half-sheet, keeping their proportions, and centred.
+* **Binding**:
+  * *Left*: classic booklet, A4 landscape sheet → A5 portrait booklet;
+  * *Right*: right-to-left reading (manga, Arabic, Hebrew);
+  * *Top* (calendar): A4 portrait sheet, two landscape pages one above the other → great for
+    16:9 slides, which stay large;
+  * *Automatic*: “top” when most pages are landscape (slides), otherwise “left”.
 
-* **Windows** : l'application pilote l'imprimante directement (GDI) et force ces réglages
-  (orientation, format, recto-verso bord court, nombre d'exemplaires).
-* **macOS / Linux** : envoi via CUPS (`lp -o sides=two-sided-short-edge`).
-* **Imprimante sans recto-verso** : choisissez « Recto-verso manuel ». Les rectos s'impriment,
-  puis l'application vous demande de retourner la pile (sur le bord court) et imprime les versos.
-  Si les versos sortent dans le mauvais ordre avec votre imprimante, cochez « Inverser l'ordre des versos ».
-* Si vous imprimez le PDF imposé depuis un autre logiciel : *Recto-verso → Retourner sur le bord court*,
-  *Taille réelle / 100 %* (pas « Ajuster »).
+### Print settings
 
-## Fichiers PowerPoint
+Booklets are always printed **double-sided, flipped on the short edge, at 100 % scale**.
 
-Les fichiers `.pptx`, `.ppt`, `.odp` (et `.docx`, `.odt`) sont d'abord convertis en PDF :
+* **Windows**: the app drives the printer directly (GDI) and forces these settings
+  (orientation, paper size, short-edge duplex, number of copies).
+* **macOS / Linux**: printed through CUPS (`lp -o sides=two-sided-short-edge`).
+* **Printer without duplex**: turn off “My printer prints double-sided”. The fronts are printed,
+  the app asks you to turn the stack over (on the short edge) and then prints the backs.
+  If your printer outputs the backs in the wrong order, turn on “Reverse the order of the backs”.
+* When printing the saved PDF from another program, choose *Two-sided → Flip on short edge*
+  and *Actual size / 100 %* (not “Fit”).
 
-1. avec **LibreOffice** s'il est installé (recommandé, gratuit : <https://www.libreoffice.org>) ;
-2. sinon, sous Windows, avec **Microsoft PowerPoint** s'il est installé.
+## PowerPoint files
 
-Le chemin de LibreOffice est détecté automatiquement ; on peut aussi le forcer avec la
-variable d'environnement `BOOKLET_SOFFICE`. Pour un rendu identique à PowerPoint,
-exporter la présentation en PDF depuis PowerPoint reste l'option la plus fidèle.
+`.pptx`, `.ppt`, `.odp` (and `.docx`, `.odt`) files are converted to PDF first:
 
-## Mise à jour automatique
+1. with **LibreOffice** when it is installed (recommended, free: <https://www.libreoffice.org>);
+2. otherwise, on Windows, with **Microsoft PowerPoint** when it is installed.
 
-Au démarrage, l'exécutable Windows vérifie la dernière
-[release GitHub](https://github.com/ElMastho/booklet-printer/releases). Si une version plus récente
-existe, il propose de l'installer : il télécharge le nouvel exe, se ferme, se remplace et redémarre.
-Menu **Aide → Rechercher des mises à jour** pour vérifier à la demande, et **Aide → Vérifier au
-démarrage** pour désactiver la vérification automatique.
+LibreOffice is found automatically; its path can also be forced with the `BOOKLET_SOFFICE`
+environment variable. For a result identical to PowerPoint, exporting the presentation to PDF
+from PowerPoint is still the most faithful option.
 
-## Ligne de commande
+## Automatic updates
+
+On start-up the Windows executable checks the latest
+[GitHub release](https://github.com/ElMastho/booklet-printer/releases). When a newer version
+exists it offers to install it: it downloads the new exe, closes, replaces itself and restarts.
+Use **⋯ → Check for updates** to check on demand.
+
+## Command line
 
 ```bash
-BookletPrinter.exe                         # interface graphique
-BookletPrinter.exe document.pptx           # interface graphique avec le fichier ouvert
-python -m booklet_printer doc.pdf -o livret.pdf [--paper A4] [--binding auto|left|right|top]
-                          [--margin 5] [--gutter 0] [--keep-back-cover] [--fold-marks] [--split]
-python -m booklet_printer doc.pdf --print [--printer "Nom"] [--copies 2]
+BookletPrinter.exe                         # graphical interface
+BookletPrinter.exe document.pptx           # graphical interface with the file open
+python -m booklet_printer doc.pdf -o booklet.pdf [--paper A4] [--binding auto|left|right|top]
+        [--margin 5] [--gutter 0] [--pages "1-4,blank,6,5,8-,7:r90"]
+        [--keep-back-cover] [--fold-marks] [--split] [--export-pages edited.pdf] [--lang en|fr]
+python -m booklet_printer doc.pdf --print [--printer "Name"] [--copies 2]
 ```
 
-`--split` écrit aussi `livret-rectos.pdf` et `livret-versos.pdf` pour un recto-verso manuel.
+* `--pages` sets the page order: page numbers, ranges (`8-5` goes backwards), `blank`, and
+  `:r90` / `:r180` / `:r270` to rotate a page.
+* `--split` also writes `booklet-fronts.pdf` and `booklet-backs.pdf` for manual duplex.
 
-## Développement
+## Development
 
 ```bash
-python -m venv .venv && . .venv/bin/activate      # Windows : .venv\Scripts\activate
+python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
 python -m pytest
-python -m booklet_printer                          # lance l'interface
-pyinstaller --onefile --windowed --name BookletPrinter run_app.py   # construit l'exe
+python -m booklet_printer                          # start the interface
+pyinstaller --onefile --windowed --name BookletPrinter --collect-data customtkinter run_app.py
+python scripts/ui_screenshots.py screenshots en light   # screenshots of every view
 ```
 
-Structure :
-
-| Module | Rôle |
+| Module | Role |
 | --- | --- |
-| `booklet_printer/imposition.py` | Ordre des pages, géométrie, génération du PDF imposé (PyMuPDF) |
-| `booklet_printer/convert.py` | Conversion PPTX → PDF (LibreOffice, ou PowerPoint sous Windows) |
-| `booklet_printer/printing.py` | Impression (GDI sous Windows, CUPS ailleurs) |
-| `booklet_printer/updater.py` | Mise à jour automatique via GitHub Releases |
-| `booklet_printer/gui.py` | Interface Tkinter avec aperçu |
-| `booklet_printer/cli.py` | Point d'entrée (interface ou ligne de commande) |
+| `booklet_printer/imposition.py` | Page order, geometry, imposed PDF generation (PyMuPDF) |
+| `booklet_printer/pages.py` | Editable page plan: order, blanks, rotation, crop, scale, offset, undo |
+| `booklet_printer/convert.py` | PPTX → PDF conversion (LibreOffice, or PowerPoint on Windows) |
+| `booklet_printer/printing.py` | Printing (GDI on Windows, CUPS elsewhere) |
+| `booklet_printer/updater.py` | Automatic updates from GitHub Releases |
+| `booklet_printer/i18n.py` | English and French strings, system language detection |
+| `booklet_printer/ui/` | CustomTkinter interface: booklet view, page organizer, printed sheets |
+| `booklet_printer/cli.py` | Entry point (interface or command line) |
 
-### Publier une version
+### Releasing
 
-1. Mettre à jour `__version__` dans `booklet_printer/__init__.py`.
-2. Commit et push sur `main`.
-3. Dans [Actions → CI → Run workflow](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml),
-   cocher « Publier une release » (ou pousser un tag `vX.Y.Z` identique à la version).
-4. La CI lance les tests (Linux et Windows), construit `BookletPrinter.exe`, le teste,
-   puis crée la release GitHub avec l'exe : les installations existantes se mettent à jour d'elles-mêmes.
+1. Bump `__version__` in `booklet_printer/__init__.py`.
+2. Commit and push to `main`.
+3. In [Actions → CI → Run workflow](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml),
+   tick “Publish release” (or push a `vX.Y.Z` tag matching the version).
+4. CI runs the tests (Linux and Windows), builds `BookletPrinter.exe`, smoke-tests it and creates
+   the GitHub release with the exe: existing installations update themselves.
 
-## Licence
+## License
 
 MIT

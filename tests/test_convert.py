@@ -14,7 +14,7 @@ def make_pptx(path, n):
     prs.save(path)
 
 
-@pytest.mark.skipif(find_soffice() is None, reason="LibreOffice non installé")
+@pytest.mark.skipif(find_soffice() is None, reason="LibreOffice not installed")
 def test_pptx_to_booklet(tmp_path):
     src = tmp_path / "deck.pptx"
     make_pptx(src, 5)

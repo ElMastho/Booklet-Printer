@@ -7,7 +7,7 @@ helper script once the application has quit, then relaunched.
 
 For a private repository a GitHub token with read access to the repository
 contents is required: set the ``BOOKLET_GITHUB_TOKEN`` environment variable
-or put ``{"github_token": "..."}`` in the config file (see ``config_path``).
+or put ``{"github_token": "..."}`` in the config file (see ``config.config_path``).
 """
 
 from __future__ import annotations
@@ -25,6 +25,8 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from . import APP_NAME, REPO, __version__
+from .config import config_path, load_config, save_config  # noqa: F401  (re-exported)
+from .i18n import t
 
 API = "https://api.github.com"
 ASSET_NAME = "BookletPrinter.exe"
@@ -43,31 +45,6 @@ class Release:
     html_url: str
 
 
-# ------------------------------------------------------------------ config
-
-def config_path() -> Path:
-    if sys.platform.startswith("win"):
-        base = Path(os.environ.get("APPDATA", Path.home()))
-    elif sys.platform == "darwin":
-        base = Path.home() / "Library" / "Application Support"
-    else:
-        base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-    return base / APP_NAME / "config.json"
-
-
-def load_config() -> dict:
-    try:
-        return json.loads(config_path().read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-
-
-def save_config(cfg: dict) -> None:
-    path = config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
-
-
 def github_token() -> Optional[str]:
     return os.environ.get("BOOKLET_GITHUB_TOKEN") or load_config().get("github_token") or None
 
@@ -77,7 +54,7 @@ def github_token() -> Optional[str]:
 def parse_version(text: str) -> tuple[int, ...]:
     nums = re.findall(r"\d+", text.split("-")[0].split("+")[0])
     if not nums:
-        raise ValueError(f"Version invalide : {text}")
+        raise ValueError(f"Invalid version: {text}")
     return tuple(int(n) for n in nums[:4])
 
 
@@ -103,13 +80,10 @@ def latest_release(timeout: float = 10) -> Release:
             data = json.load(resp)
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
-            raise UpdateError(
-                "Aucune release trouvée. Si le dépôt est privé, configurez un jeton GitHub "
-                "(menu Aide → Jeton GitHub)."
-            ) from exc
-        raise UpdateError(f"GitHub a répondu {exc.code}.") from exc
+            raise UpdateError(t("upd.no_release")) from exc
+        raise UpdateError(t("upd.http_error", code=exc.code)) from exc
     except (urllib.error.URLError, OSError) as exc:
-        raise UpdateError(f"Impossible de joindre GitHub : {exc}") from exc
+        raise UpdateError(t("upd.unreachable", error=exc)) from exc
     asset = next((a for a in data.get("assets", []) if a.get("name") == ASSET_NAME), None)
     return Release(
         version=data["tag_name"].lstrip("v"),
@@ -132,7 +106,7 @@ def is_frozen_windows() -> bool:
 
 def download(release: Release, dest: Path, progress: Optional[Callable[[int, int], None]] = None) -> Path:
     if not release.asset_url:
-        raise UpdateError(f"La release {release.tag} ne contient pas {ASSET_NAME}.")
+        raise UpdateError(t("upd.no_asset", tag=release.tag, asset=ASSET_NAME))
     req = _request(release.asset_url, accept="application/octet-stream")
     try:
         with urllib.request.urlopen(req, timeout=60) as resp, open(dest, "wb") as fh:
@@ -144,16 +118,16 @@ def download(release: Release, dest: Path, progress: Optional[Callable[[int, int
                 if progress:
                     progress(done, total)
     except (urllib.error.URLError, OSError) as exc:
-        raise UpdateError(f"Téléchargement impossible : {exc}") from exc
+        raise UpdateError(t("upd.download_failed", error=exc)) from exc
     if dest.stat().st_size < 1024 * 1024:
-        raise UpdateError("Le fichier téléchargé semble incomplet.")
+        raise UpdateError(t("upd.incomplete"))
     return dest
 
 
 def install_and_restart(new_exe: Path) -> None:
     """Replace the running exe once it has exited, then relaunch it (Windows)."""
     if not is_frozen_windows():
-        raise UpdateError("La mise à jour automatique n'est disponible que pour l'exécutable Windows.")
+        raise UpdateError(t("upd.windows_only"))
     current = Path(sys.executable)
     script = Path(tempfile.gettempdir()) / f"{APP_NAME}-update.cmd"
     script.write_text(

@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pymupdf as fitz
 
+from .i18n import t
+
 OFFICE_EXTENSIONS = {".pptx", ".ppt", ".odp", ".pps", ".ppsx", ".docx", ".doc", ".odt"}
 SUPPORTED_EXTENSIONS = {".pdf"} | OFFICE_EXTENSIONS
 
@@ -67,7 +69,7 @@ def powerpoint_to_pdf(path: Path, out_dir: Path) -> Path:
             app.Quit()
         pythoncom.CoUninitialize()
     if not pdf.exists():
-        raise ConversionError("PowerPoint n'a pas produit de PDF.")
+        raise ConversionError(t("conv.powerpoint_no_pdf"))
     return pdf
 
 
@@ -79,17 +81,9 @@ def office_to_pdf(path: Path, out_dir: Path, timeout: int = 180) -> Path:
         except ConversionError:
             raise
         except Exception as exc:  # noqa: BLE001 - PowerPoint absent or COM failure
-            raise ConversionError(
-                "Ni LibreOffice ni Microsoft PowerPoint ne sont disponibles pour convertir "
-                f"ce fichier ({exc}). Installez LibreOffice (https://www.libreoffice.org) "
-                "ou exportez d'abord la présentation en PDF."
-            ) from exc
+            raise ConversionError(t("conv.no_converter", error=exc)) from exc
     if not soffice:
-        raise ConversionError(
-            "LibreOffice est introuvable : il est nécessaire pour convertir les fichiers "
-            f"{path.suffix}. Installez-le (https://www.libreoffice.org) ou exportez "
-            "d'abord votre présentation en PDF depuis PowerPoint."
-        )
+        raise ConversionError(t("conv.no_libreoffice", ext=path.suffix))
     # A private profile avoids clashing with a LibreOffice window already open.
     profile = Path(tempfile.mkdtemp(prefix="booklet-lo-profile-"))
     cmd = [
@@ -109,12 +103,12 @@ def office_to_pdf(path: Path, out_dir: Path, timeout: int = 180) -> Path:
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, **kwargs)
     except subprocess.TimeoutExpired as exc:
-        raise ConversionError("La conversion LibreOffice a pris trop de temps.") from exc
+        raise ConversionError(t("conv.timeout")) from exc
     finally:
         shutil.rmtree(profile, ignore_errors=True)
     pdf = out_dir / (path.stem + ".pdf")
     if proc.returncode != 0 or not pdf.exists():
-        raise ConversionError(f"Échec de la conversion LibreOffice :\n{proc.stderr or proc.stdout}")
+        raise ConversionError(t("conv.failed", details=proc.stderr or proc.stdout))
     return pdf
 
 
@@ -131,4 +125,4 @@ def load_document(path: str | os.PathLike) -> fitz.Document:
             pdf = office_to_pdf(path, Path(tmp))
             data = pdf.read_bytes()
         return fitz.open(stream=data, filetype="pdf")
-    raise ConversionError(f"Format non pris en charge : {ext}")
+    raise ConversionError(t("conv.unsupported", ext=ext))

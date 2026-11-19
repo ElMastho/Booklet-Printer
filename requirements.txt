@@ -1,3 +1,4 @@
 pymupdf>=1.24
+customtkinter==5.2.2
+pillow>=10.1
 pywin32>=306; sys_platform == "win32"
-pillow>=10; sys_platform == "win32"

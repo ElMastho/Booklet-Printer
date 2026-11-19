@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Publier une release v<__version__> avec l'exe Windows"
+        description: "Publish release v<__version__> with the Windows exe"
         type: boolean
         default: false
 
@@ -65,6 +65,7 @@ jobs:
           pyinstaller --noconfirm --clean --onefile --windowed
           --name BookletPrinter
           --hidden-import win32timezone
+          --collect-data customtkinter
           run_app.py
 
       - name: Smoke test the executable
@@ -79,6 +80,27 @@ jobs:
         with:
           name: BookletPrinter-windows
           path: dist/BookletPrinter.exe
+
+  ui-screenshots:
+    name: UI screenshots (Windows)
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Take screenshots
+        run: |
+          python scripts/ui_screenshots.py screenshots en light
+          python scripts/ui_screenshots.py screenshots fr dark
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ui-screenshots
+          path: screenshots/*.png
 
   release:
     name: Publish GitHub release
@@ -104,7 +126,7 @@ jobs:
         run: |
           tag="${{ steps.tag.outputs.name }}"
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::La release $tag existe déjà : augmentez __version__."; exit 1
+            echo "::error::Release $tag already exists: bump __version__."; exit 1
           fi
           gh release create "$tag" dist/BookletPrinter.exe \
             --repo "$GITHUB_REPOSITORY" \

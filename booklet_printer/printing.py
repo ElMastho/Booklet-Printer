@@ -18,6 +18,8 @@ from typing import Optional
 
 import pymupdf as fitz
 
+from .i18n import t
+
 IS_WINDOWS = sys.platform.startswith("win")
 
 
@@ -73,7 +75,7 @@ def default_printer() -> Optional[str]:
 
 def print_document(doc: fitz.Document, opts: PrintOptions) -> None:
     if len(doc) == 0:
-        raise PrintError("Rien à imprimer.")
+        raise PrintError(t("prn.nothing"))
     if IS_WINDOWS:
         _print_windows(doc, opts)
     else:
@@ -83,7 +85,7 @@ def print_document(doc: fitz.Document, opts: PrintOptions) -> None:
 def _print_cups(doc: fitz.Document, opts: PrintOptions) -> None:
     lp = shutil.which("lp")
     if not lp:
-        raise PrintError("La commande 'lp' (CUPS) est introuvable.")
+        raise PrintError(t("prn.no_lp"))
     media = {"A4": "A4", "A3": "A3", "Letter": "Letter", "Legal": "Legal", "Tabloid": "Tabloid"}[opts.paper]
     fd, tmp = tempfile.mkstemp(suffix=".pdf", prefix="booklet-")
     os.close(fd)
@@ -98,7 +100,7 @@ def _print_cups(doc: fitz.Document, opts: PrintOptions) -> None:
         cmd.append(tmp)
         proc = subprocess.run(cmd, capture_output=True, text=True)
         if proc.returncode != 0:
-            raise PrintError(proc.stderr.strip() or "Échec de l'impression.")
+            raise PrintError(proc.stderr.strip() or t("prn.failed", error=""))
     finally:
         try:
             os.remove(tmp)
@@ -124,7 +126,7 @@ def _print_windows(doc: fitz.Document, opts: PrintOptions) -> None:
         import win32ui
         from PIL import Image, ImageWin
     except ImportError as exc:  # pragma: no cover - windows only
-        raise PrintError("pywin32 et Pillow sont nécessaires pour imprimer sous Windows.") from exc
+        raise PrintError(t("prn.no_pywin32")) from exc
 
     name = opts.printer or win32print.GetDefaultPrinter()
     first = doc[0].rect
@@ -165,7 +167,7 @@ def _print_windows(doc: fitz.Document, opts: PrintOptions) -> None:
             dc.AbortDoc()
         except Exception:
             pass
-        raise PrintError(f"Échec de l'impression : {exc}") from exc
+        raise PrintError(t("prn.failed", error=exc)) from exc
     finally:
         dc.DeleteDC()
 
