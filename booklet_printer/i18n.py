@@ -35,6 +35,11 @@ EN: dict[str, str] = {
     "prn.no_lp": "The 'lp' command (CUPS) was not found.",
     "prn.failed": "Printing failed. {error}",
     "prn.no_pywin32": "pywin32 and Pillow are required to print on Windows.",
+    "prn.fallback_settings": (
+        "Printed with the printer's default settings: check that it prints double-sided, "
+        "flipped on the short edge."
+    ),
+    "prn.try_pdf": "You can still use “Save as PDF” and print the file from your PDF reader.",
     "upd.no_release": "No release found on GitHub.",
     "upd.http_error": "GitHub answered with HTTP {code}.",
     "upd.unreachable": "Cannot reach GitHub: {error}",
@@ -263,6 +268,11 @@ FR: dict[str, str] = {
     "prn.no_lp": "La commande « lp » (CUPS) est introuvable.",
     "prn.failed": "Échec de l'impression. {error}",
     "prn.no_pywin32": "pywin32 et Pillow sont nécessaires pour imprimer sous Windows.",
+    "prn.fallback_settings": (
+        "Imprimé avec les réglages par défaut de l'imprimante : vérifiez qu'elle imprime en recto-verso, "
+        "retournement sur le bord court."
+    ),
+    "prn.try_pdf": "Vous pouvez toujours utiliser « Enregistrer en PDF » et imprimer le fichier depuis votre lecteur PDF.",
     "upd.no_release": "Aucune version publiée sur GitHub.",
     "upd.http_error": "GitHub a répondu avec le code HTTP {code}.",
     "upd.unreachable": "Impossible de joindre GitHub : {error}",

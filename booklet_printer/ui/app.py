@@ -582,7 +582,9 @@ class App(ctk.CTkFrame):
         try:
             if self.auto_duplex.get():
                 base.copies = copies
-                print_document(self.result.document, base)
+                warning = print_document(self.result.document, base)
+                if warning:
+                    messagebox.showwarning(t("btn.print"), warning)
                 self.toast(t("status.sent"))
                 return
             full = fitz.open()

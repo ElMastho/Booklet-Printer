@@ -95,6 +95,8 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-dev.txt
       - run: pip install -r requirements-dev.txt
+      - name: Print smoke test (Microsoft Print to PDF)
+        run: python scripts/print_smoke_test.py
       - name: Take screenshots
         run: |
           python scripts/ui_screenshots.py screenshots en light
