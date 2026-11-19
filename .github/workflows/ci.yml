@@ -6,6 +6,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release:
+        description: "Publier une release v<__version__> avec l'exe Windows"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -77,12 +82,18 @@ jobs:
 
   release:
     name: Publish GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release)
     needs: build-windows
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v5
+      - name: Resolve tag
+        id: tag
+        run: |
+          version=$(python3 -c "import booklet_printer; print(booklet_printer.__version__)")
+          echo "name=v$version" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v5
         with:
           name: BookletPrinter-windows
@@ -91,7 +102,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/BookletPrinter.exe \
+          tag="${{ steps.tag.outputs.name }}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::La release $tag existe déjà : augmentez __version__."; exit 1
+          fi
+          gh release create "$tag" dist/BookletPrinter.exe \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Booklet Printer $GITHUB_REF_NAME" \
+            --target "$GITHUB_SHA" \
+            --title "Booklet Printer $tag" \
             --generate-notes

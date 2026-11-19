@@ -110,8 +110,10 @@ Structure :
 ### Publier une version
 
 1. Mettre à jour `__version__` dans `booklet_printer/__init__.py`.
-2. Commit, puis `git tag vX.Y.Z && git push origin main vX.Y.Z`.
-3. La CI lance les tests (Linux et Windows), construit `BookletPrinter.exe`, le teste,
+2. Commit et push sur `main`.
+3. Dans [Actions → CI → Run workflow](https://github.com/ElMastho/booklet-printer/actions/workflows/ci.yml),
+   cocher « Publier une release » (ou pousser un tag `vX.Y.Z` identique à la version).
+4. La CI lance les tests (Linux et Windows), construit `BookletPrinter.exe`, le teste,
    puis crée la release GitHub avec l'exe : les installations existantes se mettent à jour d'elles-mêmes.
 
 ## Licence
